@@ -31,6 +31,7 @@ public class PlayerShooting : MonoBehaviour
 
     void Fire()
     {
+        Debug.Log("Shooting successful");
         //if your current ammo is empty, we try to reload
         if (useClip.currentClip == 0)
         {
