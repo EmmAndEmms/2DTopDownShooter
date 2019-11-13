@@ -9,9 +9,11 @@ using UnityEngine;
 /// </remarks>
 public class PlayerRotation : MonoBehaviour
 {
-	public float speed = 5;
-	public bool instant;
-
+    // Sprites for each orientation, can change in the Inspector if needed
+    public Sprite face_up;
+    public Sprite face_down;
+    public Sprite face_right;
+    public Sprite face_left;
 	private Camera m_MainCamera;
 
 	private void Start()
@@ -21,42 +23,37 @@ public class PlayerRotation : MonoBehaviour
 
 	private void Update()
 	{
-		Vector2 mouseDirection = m_MainCamera.ScreenToWorldPoint(Input.mousePosition) - transform.position;
-		float mouseAngle = Mathf.Atan2(mouseDirection.y, mouseDirection.x) * Mathf.Rad2Deg;
-		Quaternion desiredRotation = Quaternion.AngleAxis(mouseAngle, Vector3.forward);
+        // Get the child GameObject named "Renderer" and access its SpriteRenderer
+        GameObject child = GameObject.Find("Renderer"); 
+        SpriteRenderer sprite_renderer = child.GetComponent<SpriteRenderer>();
 
-		if (instant)
-		{
-			transform.rotation = desiredRotation;
-		}
-		else
-		{
-			transform.rotation = Quaternion.RotateTowards(
-				transform.rotation,
-				desiredRotation,
-				speed * Time.deltaTime * Mathf.Rad2Deg
-			);
-		}
-	}
-}
+        // Calculate the angle of the mouse/intended player rotation
+        Vector2 mouseDirection = m_MainCamera.ScreenToWorldPoint(Input.mousePosition) - transform.position;
+		float mouseAngle = Mathf.Atan2(mouseDirection.y, mouseDirection.x) * Mathf.Rad2Deg; // Bounds: 0 - 180, -180 - 0
+        
+        // Uncomment to find the current angle of the mouse
+        //Debug.Log(mouseAngle);
 
-/// <summary>
-/// A custom editor for <c>PlayerRotation</c> that disables the (meaningless) <c>speed</c> when <c>instant</c> is set to true. 
-/// </summary>
+        // Change the current sprite depending on the angle of the mouse
+        if (-45 <= mouseAngle && mouseAngle < 45)
+        {
+            sprite_renderer.sprite = face_right;
+            sprite_renderer.flipX = false;
+        }
+        else if (45 <= mouseAngle && mouseAngle < 135)
+        {
+            sprite_renderer.sprite = face_up;
+        }
+        else if ((135 <= mouseAngle && mouseAngle <= 180) || (-180 <= mouseAngle && mouseAngle < -135))
+        {
+            sprite_renderer.sprite = face_left;
+            sprite_renderer.flipX = true;
+        }
+        else
+        {
+            sprite_renderer.sprite = face_down;
+        }
 
-    
-[CustomEditor(typeof(PlayerRotation))]
-public class PlayerRotationEditor : Editor
-{
-	public override void OnInspectorGUI()
-	{
-		var script = target as PlayerRotation;
-		Debug.Assert(script != null);
 
-		if (script.instant) GUI.enabled = false;
-		script.speed = EditorGUILayout.FloatField("Speed", script.speed);
-		GUI.enabled = true;
-
-		script.instant = EditorGUILayout.Toggle("Instant", script.instant);
 	}
 }
